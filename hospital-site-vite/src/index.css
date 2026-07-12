@@ -1,0 +1,42 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-primary: #2B909B;
+  --color-primary-dark: #237d88;
+  --color-primary-light: #4eb5bf;
+  --color-text: #102a35;
+  --color-text-muted: #5a7a85;
+  --color-bg: #f5fafa;
+  --color-surface: #ffffff;
+  --color-footer: #06464f;
+  --hero-pattern: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232B909B' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  overflow-x: hidden;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+html, body, #root {
+  min-height: 100%;
+  margin: 0;
+}
+
+button, input, textarea, select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}

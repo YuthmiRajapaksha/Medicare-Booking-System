@@ -1,0 +1,22 @@
+const express = require("express");
+const router = express.Router();
+const bookingController = require("../controllers/bookingController");
+
+// GET bookings for a doctor
+router.get("/:doctorId", bookingController.getBookingsByDoctor);
+
+router.get("/doctor/:doctorId", bookingController.getDoctorSessions);
+
+router.get("/doctorInfo/:doctorId", bookingController.getDoctorById);
+
+// UPDATE booking by ID
+router.put("/:id", bookingController.updateBooking);
+
+// DELETE booking by ID
+router.delete("/:id", bookingController.deleteBooking);
+
+// Get all appointments for a doctor with assigned count
+router.get("/doctor/:doctorId", bookingController.getDoctorAppointments);
+
+module.exports = router;
+  
