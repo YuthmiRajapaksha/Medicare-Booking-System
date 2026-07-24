@@ -230,7 +230,25 @@ const SignUp = () => {
               sx={{ mt: 2 }}
             />
 
-            <Box display="flex" justifyContent="space-between" mt={3}>
+           <Box sx={{ textAlign: "center", mt: 3 }}>
+  <Button
+    variant="outlined"
+    onClick={handleBack}
+    sx={{ mr: 3 }}
+  >
+    Back
+  </Button>
+
+  <Button
+    variant="contained"
+    onClick={handleNext}
+    sx={{ ml: 3, bgcolor: "#2B909B" }}
+  >
+    VERIFY
+  </Button>
+</Box>
+
+            {/* <Box display="flex" justifyContent="space-between" mt={3} >
               <Button variant="outlined" onClick={handleBack}>
                 Back
               </Button>
@@ -241,7 +259,7 @@ const SignUp = () => {
               >
                 VERIFY
               </Button>
-            </Box>
+            </Box> */}
           </Box>
         )}
 
@@ -347,7 +365,7 @@ const SignUp = () => {
                 }}
               />
 
-              <Box display="flex" justifyContent="space-between" mt={3}>
+              {/* <Box display="flex" justifyContent="space-between" mt={3}>
                 <Button variant="outlined" onClick={handleBack}>
                   Back
                 </Button>
@@ -358,7 +376,43 @@ const SignUp = () => {
                 >
                   {loading ? "Registering..." : "Submit"}
                 </Button>
-              </Box>
+              </Box> */}
+
+              <Box
+  sx={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 3,
+    mt: 3,
+  }}
+>
+  <Button
+    variant="outlined"
+    onClick={handleBack}
+    sx={{
+      minWidth: 120,
+      borderRadius: 2,
+    }}
+  >
+    Back
+  </Button>
+
+  <Button
+    variant="contained"
+    type="submit"
+    sx={{
+      backgroundColor: "#2B909B",
+      minWidth: 120,
+      borderRadius: 2,
+      "&:hover": {
+        backgroundColor: "#237d88",
+      },
+    }}
+  >
+    {loading ? "Registering..." : "Submit"}
+  </Button>
+</Box>
             </form>
           </Box>
         )}

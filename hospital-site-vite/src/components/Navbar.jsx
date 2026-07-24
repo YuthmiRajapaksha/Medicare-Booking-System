@@ -188,28 +188,28 @@ const Navbar = () => {
                   onClose={handleMenuClose}
                   PaperProps={{ sx: { minWidth: 320, borderRadius: 3, p: 0 } }}
                 >
-                  <Box px={3} py={2} minWidth={220} textAlign="center">
-                    <Typography fontWeight="bold">
+                  <Box px={3} py={2} minWidth={920} textAlign="center">
+                    {/* <Typography fontWeight="bold">
                       {user?.firstName || user?.name || "User"}
                     </Typography>
 
                     <Typography variant="body2" color="text.secondary">
                       {user?.email}
-                    </Typography>
+                    </Typography> */}
 
-                    <Typography variant="caption" color="primary">
+                    {/* <Typography variant="caption" color="primary">
                       {auth?.role?.toUpperCase() || "USER"}
-                    </Typography>
+                    </Typography> */}
                   </Box>
 
-                  <MenuItem
+                  {/* <MenuItem
                     onClick={() => {
                       navigate("/profile");
                       handleMenuClose();
                     }}
                   >
                     Profile
-                  </MenuItem>
+                  </MenuItem> */}
 
                   <MenuItem
                     onClick={() => {

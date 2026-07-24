@@ -81,20 +81,42 @@ const MyBookings = () => {
   ];
 
   //  Apply filters
+  // const filteredAppointments = appointments
+  //   .filter((appt) =>
+  //     appt.doctor_name.toLowerCase().includes(filterDoctor.toLowerCase()),
+  //   )
+  //   .filter((appt) =>
+  //     filterHospital ? appt.hospital === filterHospital : true,
+  //   )
+  //   .filter((appt) =>
+  //     filterStatus
+  //       ? filterStatus === "active"
+  //         ? appt.status !== "cancelled"
+  //         : appt.status === "cancelled"
+  //       : true,
+  //   );
+
   const filteredAppointments = appointments
-    .filter((appt) =>
-      appt.doctor_name.toLowerCase().includes(filterDoctor.toLowerCase()),
-    )
-    .filter((appt) =>
-      filterHospital ? appt.hospital === filterHospital : true,
-    )
-    .filter((appt) =>
-      filterStatus
-        ? filterStatus === "active"
-          ? appt.status !== "cancelled"
-          : appt.status === "cancelled"
-        : true,
-    );
+  .filter((appt) =>
+    appt.doctor_name.toLowerCase().includes(filterDoctor.toLowerCase())
+  )
+  .filter((appt) =>
+    filterHospital ? appt.hospital === filterHospital : true
+  )
+  .filter((appt) =>
+    filterStatus
+      ? filterStatus === "active"
+        ? appt.status !== "cancelled"
+        : appt.status === "cancelled"
+      : true
+  )
+  .sort((a, b) => {
+    const dateA = new Date(`${a.session_date}T${a.session_time}`);
+    const dateB = new Date(`${b.session_date}T${b.session_time}`);
+
+    // Latest first
+    return dateB - dateA;
+  });
 
   //  Paginate after filtering
   const paginatedAppointments = filteredAppointments.slice(
