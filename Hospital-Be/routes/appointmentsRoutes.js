@@ -151,11 +151,19 @@ router.get("/count-all", appointmentsController.getTotalAppointmentsCount);
 router.get("/count-today", appointmentsController.getTodayAppointmentsCount);
 router.get("/count-week", appointmentsController.getWeekAppointmentsCount);
 
+router.get(
+  "/payment-details/:doctorId/:date",
+  appointmentsController.getPaymentDetails
+);
 
+router.get(
+  "/session-patients/:bookingformId",
+  appointmentsController.getSessionPatients
+);
 
 // router.get("/doctor/:doctorId/status-count", appointmentsController.getStatusCounts);
 
-// ✅ No more :doctorId
+
 router.get("/status-count",appointmentsController. getStatusCounts);
 
 module.exports = router;

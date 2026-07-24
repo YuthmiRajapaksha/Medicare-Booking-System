@@ -1012,32 +1012,59 @@ exports.getTodayAppointmentsCount = async (req, res) => {
 };
 
 
+//workinggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg
+// exports.getDailyStatsByDoctor = async (req, res) => {
+//   const doctorId = req.params.id;
+
+//   try {
+//     const [rows] = await pool.query(`
+//       SELECT 
+//         DATE(created_at) AS date,
+//         COUNT(*) AS patientCount,
+//         COUNT(*) * 2500 AS totalRevenue
+//       FROM appointments
+//       WHERE doctor_id = ?
+//         AND status != 'cancelled'   
+//         AND DATE(created_at) >= CURDATE() - INTERVAL 30 DAY
+//       GROUP BY DATE(created_at)
+//       ORDER BY DATE(created_at) DESC
+//     `, [doctorId]);
+
+//     res.json({ dailyStats: rows });
+//   } catch (error) {
+//     console.error("Error fetching daily stats:", error);
+//     res.status(500).json({ error: "Database error" });
+//   }
+// };
 
 exports.getDailyStatsByDoctor = async (req, res) => {
   const doctorId = req.params.id;
 
   try {
     const [rows] = await pool.query(`
-      SELECT 
-        DATE(created_at) AS date,
+      SELECT
+        DATE(session_date) AS date,
         COUNT(*) AS patientCount,
         COUNT(*) * 2500 AS totalRevenue
       FROM appointments
       WHERE doctor_id = ?
-        AND status != 'cancelled'   
-        AND DATE(created_at) >= CURDATE() - INTERVAL 30 DAY
-      GROUP BY DATE(created_at)
-      ORDER BY DATE(created_at) DESC
+        AND status != 'cancelled'
+        AND DATE(session_date) >= CURDATE() - INTERVAL 30 DAY
+      GROUP BY DATE(session_date)
+      ORDER BY DATE(session_date) DESC
     `, [doctorId]);
 
-    res.json({ dailyStats: rows });
+    res.json({
+      dailyStats: rows
+    });
+
   } catch (error) {
-    console.error("Error fetching daily stats:", error);
-    res.status(500).json({ error: "Database error" });
+    console.error(error);
+    res.status(500).json({
+      message: "Database error"
+    });
   }
 };
-
-
 
 
 // exports.getDailyStatsByDoctor = async (req, res) => {
@@ -1401,8 +1428,9 @@ exports.getAppointmentsByDoctor = async (req, res) => {
         b.max_appointments,
         COUNT(a.id) AS assigned_count
       FROM bookingForm b
-      LEFT JOIN appointments a
-        ON a.bookingform_id = b.id
+     LEFT JOIN appointments a
+  ON a.bookingform_id = b.id
+  AND a.status != 'cancelled'
       WHERE b.doctor_id = ?
       GROUP BY
         b.id,
@@ -1422,14 +1450,24 @@ exports.getAppointmentsByDoctor = async (req, res) => {
     let assigned = [];
 
     if (sessionIds.length > 0) {
+      // const [rows] = await pool.query(
+      //   `
+      //   SELECT *
+      //   FROM appointments
+      //   WHERE bookingform_id IN (?)
+      //   `,
+      //   [sessionIds]
+      // );
+
       const [rows] = await pool.query(
-        `
-        SELECT *
-        FROM appointments
-        WHERE bookingform_id IN (?)
-        `,
-        [sessionIds]
-      );
+  `
+  SELECT *
+  FROM appointments
+  WHERE bookingform_id IN (?)
+  AND status != 'cancelled'
+  `,
+  [sessionIds]
+);
 
       assigned = rows;
     }
@@ -1446,7 +1484,7 @@ exports.getAppointmentsByDoctor = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("DB ERROR:", err);   // 👈 IMPORTANT for debugging
+    console.error("DB ERROR:", err);   
     res.status(500).json({
       message: "Database error",
       error: err.message
@@ -1576,6 +1614,68 @@ exports.notifyDoctorArrived = async (req, res) => {
   }
 };
 
+
+exports.getPaymentDetails = async (req, res) => {
+  try {
+    const { doctorId, date } = req.params;
+
+    const [rows] = await pool.query(
+      `
+      SELECT
+        appointment_number,
+        patient_name,
+        hospital,
+        email,
+        phone,
+        nic,
+        2500 AS amount
+      FROM appointments
+      WHERE doctor_id = ?
+        AND DATE(session_date) = ?
+        AND status != 'cancelled'
+      ORDER BY appointment_number
+      `,
+      [doctorId, date]
+    );
+
+    res.json(rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(err);
+  }
+};
+
+exports.getSessionPatients = async (req, res) => {
+  const { bookingformId } = req.params;
+
+  try {
+    const [rows] = await pool.query(
+      `
+      SELECT
+        appointment_number,
+        patient_name,
+        phone,
+        email,
+        nic,
+        estimated_time
+      FROM appointments
+      WHERE bookingform_id = ?
+      AND status != 'cancelled'
+      ORDER BY appointment_number
+      `,
+      [bookingformId]
+    );
+
+    res.json(rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Database error"
+    });
+  }
+};
 
 // exports.notifyPatientsDoctorArrived = async (req, res) => {
 //   const { doctorId, hospital, sessionDate, sessionTime } = req.body;
