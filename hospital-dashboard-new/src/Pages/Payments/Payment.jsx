@@ -20,6 +20,7 @@ import {
   TableRow,
   Paper,
   IconButton,
+ 
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CloseIcon from "@mui/icons-material/Close";
@@ -27,6 +28,9 @@ import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import PaidIcon from "@mui/icons-material/Paid";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import PageHeader from "../../components/PageHeader";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -39,6 +43,68 @@ const Payment = () => {
 
   const [dailyStats, setDailyStats] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
+
+  const [paymentOpen, setPaymentOpen] = useState(false);
+const [paymentDetails, setPaymentDetails] = useState([]);
+
+const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+// const [detailsOpen, setDetailsOpen] = useState(false);
+const [selectedDate, setSelectedDate] = useState("");
+// const [appointmentDetails, setAppointmentDetails] = useState([]);
+
+const [selectedDoctorName, setSelectedDoctorName] = useState("");
+
+
+const downloadPDF = () => {
+  // const doc = new jsPDF();
+
+  // doc.setFontSize(16);
+  // doc.text("Appointment Payment Report", 14, 15);
+
+  // doc.setFontSize(11);
+  // doc.text(`Date : ${selectedDate}`, 14, 25);
+  const doc = new jsPDF();
+
+doc.setFontSize(18);
+doc.text("Appointment Payment Report", 14, 15);
+
+doc.setFontSize(12);
+doc.text(`Doctor : Dr. ${selectedDoctorName}`, 14, 25);
+doc.text(`Date : ${selectedDate}`, 14, 32);
+
+  autoTable(doc, {
+    startY: 35,
+    head: [[
+      "Appointment",
+      "Patient",
+      "Hospital",
+      "Email",
+      "Phone",
+      "Amount"
+    ]],
+    body: paymentDetails.map((row) => [
+      row.appointment_number,
+      row.patient_name,
+      row.hospital,
+      row.email,
+      row.phone,
+      row.amount
+    ])
+  });
+
+  const total = paymentDetails.reduce(
+    (sum, row) => sum + Number(row.amount),
+    0
+  );
+
+  doc.text(
+    `Total : LKR ${total}`,
+    14,
+    doc.lastAutoTable.finalY + 15
+  );
+
+  doc.save(`Payment_Report_${selectedDate}.pdf`);
+};
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,21 +148,43 @@ const Payment = () => {
     page * rowsPerPage + rowsPerPage
   );
 
-  const handleShowDailyStats = async (doctorId) => {
-    try {
-      const res = await fetch(
-        `http://localhost:3000/api/appointments/api/doctors/${doctorId}/daily-stats`
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error("Failed to fetch daily stats");
+  // const handleShowDailyStats = async (doctorId) => {
+  //   try {
+  //     const res = await fetch(
+  //       `http://localhost:3000/api/appointments/api/doctors/${doctorId}/daily-stats`
+  //     );
+  //     const data = await res.json();
+  //     if (!res.ok) throw new Error("Failed to fetch daily stats");
 
-      setDailyStats(data.dailyStats);
-      setOpenDialog(true);
-    } catch (error) {
-      console.error(error);
-      alert("Error fetching daily stats.");
-    }
-  };
+  //     setDailyStats(data.dailyStats);
+  //     setOpenDialog(true);
+  //   } catch (error) {
+  //     console.error(error);
+  //     alert("Error fetching daily stats.");
+  //   }
+  // };
+
+  const handleShowDailyStats = async (doctorId) => {
+  try {
+
+    setSelectedDoctorId(doctorId);
+
+    const res = await fetch(
+      `http://localhost:3000/api/appointments/api/doctors/${doctorId}/daily-stats`
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error("Failed to fetch daily stats");
+
+    setDailyStats(data.dailyStats);
+    setOpenDialog(true);
+
+  } catch (error) {
+    console.error(error);
+    alert("Error fetching daily stats.");
+  }
+};
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
@@ -126,6 +214,186 @@ const Payment = () => {
       bg: "#EDE4FF",
     },
   ];
+
+
+//   const handleShowPaymentDetails = async (date) => {
+//   try {
+//     const res = await fetch(
+//       `http://localhost:3000/api/appointments/payments/doctor/${doctorId}/${date}`
+//     );
+
+//     const data = await res.json();
+
+//     setPaymentDetails(data);
+//     setSelectedDate(date);
+//     setPaymentOpen(true);
+
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
+
+// const handleShowPaymentDetails = async (doctorId, date) => {
+//   try {
+
+//     const res = await fetch(
+//       `http://localhost:3000/api/appointments/payments/doctor/${doctorId}/${date}`
+//     );
+
+//     const data = await res.json();
+
+//     setPaymentDetails(data);
+//     setSelectedDate(date);
+//     setPaymentOpen(true);
+
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
+
+// const handleShowPaymentDetails = async (doctorId, date) => {
+//   try {
+
+//     console.log("Opening details");
+
+//     const res = await fetch(
+//       `http://localhost:3000/api/appointments/payment-details/${doctorId}/${date}`
+//     );
+
+//     const data = await res.json();
+
+//     console.log(data);
+
+//     setPaymentDetails(data);
+//     setSelectedDate(date);
+
+//     console.log("Before opening dialog");
+
+//     setPaymentOpen(true);
+
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
+
+// const handleShowPaymentDetails = async (doctorId, date) => {
+//   try {
+
+//     setSelectedDoctorId(doctorId);
+
+//     const res = await fetch(
+//       `http://localhost:3000/api/appointments/payment-details/${doctorId}/${date}`
+//     );
+
+//     const data = await res.json();
+
+//     setPaymentDetails(data);
+//     setSelectedDate(date);
+//     setPaymentOpen(true);
+
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
+
+// const handleShowPaymentDetails = async (doctorId, date) => {
+//   try {
+
+//     console.log("Fetching payment details:");
+//     console.log("Doctor ID:", doctorId);
+//     console.log("Date:", date);
+
+//     const res = await fetch(
+//       `http://localhost:3000/api/appointments/payment-details/${doctorId}/${date}`
+//     );
+
+//     const data = await res.json();
+
+//     console.log("API RESPONSE:", data);
+
+//     setPaymentDetails(data);
+//     setSelectedDate(date);
+//     setPaymentOpen(true);
+
+//   } catch (err) {
+//     console.error("Payment error:", err);
+//   }
+// };
+
+// const handleShowPaymentDetails = async (doctorId, date) => {
+//   try {
+//     console.log("Doctor ID:", doctorId);
+//     console.log("Date:", date);
+
+//     const formattedDate = date.split("T")[0];
+
+//     const url = `http://localhost:3000/api/appointments/payment-details/${doctorId}/${formattedDate}`;
+
+//     console.log("URL:", url);
+
+//     const res = await fetch(url);
+
+//     if (!res.ok) {
+//       throw new Error("Failed to fetch payment details");
+//     }
+
+//     const data = await res.json();
+
+//     console.log("API Response:", data);
+
+//     setPaymentDetails(Array.isArray(data) ? data : []);
+//     setSelectedDate(formattedDate);
+//     setPaymentOpen(true);
+//   } catch (err) {
+//     console.error(err);
+//     alert("Failed to load payment details.");
+//   }
+// };
+
+const handleShowPaymentDetails = async (doctorId, date) => {
+  try {
+    console.log("doctorId =", doctorId);
+    console.log("date =", date);
+
+    const formattedDate = date.substring(0, 10);
+
+    const url = `http://localhost:3000/api/appointments/payment-details/${doctorId}/${formattedDate}`;
+
+    console.log("URL =", url);
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    console.log("Returned Data =", data);
+
+    setPaymentDetails(data);
+    setSelectedDate(formattedDate);
+    setPaymentOpen(true);
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+
+const handleShowDetails = async (date) => {
+  try {
+    const res = await fetch(
+      `http://localhost:3000/api/appointments/payment-details/${doctorId}/${date}`
+    );
+
+    const data = await res.json();
+
+    setAppointmentDetails(data);
+    setSelectedDate(date);
+    setDetailsOpen(true);
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+console.log("paymentOpen:", paymentOpen);
 
   return (
     <Box>
@@ -214,7 +482,12 @@ const Payment = () => {
                   fullWidth
                   endIcon={<ArrowForwardIcon />}
                   sx={{ mt: 2.5, fontWeight: 600 }}
-                  onClick={() => handleShowDailyStats(doc.id)}
+                  // onClick={() => handleShowDailyStats(doc.id)}
+                  onClick={() => {
+  setSelectedDoctorId(doc.id);
+   setSelectedDoctorName(doc.name);
+  handleShowDailyStats(doc.id);
+}}
                 >
                   View Details
                 </Button>
@@ -240,6 +513,7 @@ const Payment = () => {
 
       <Dialog
         open={openDialog}
+        
         onClose={handleCloseDialog}
         maxWidth="md"
         fullWidth
@@ -346,14 +620,37 @@ const Payment = () => {
 
                   <TableBody>
                     {dailyStats.map((day) => (
-                      <TableRow
-                        key={day.date}
-                        sx={{
-                          transition: "0.2s",
-                          "&:hover": { backgroundColor: "rgba(43, 144, 155, 0.05)" },
-                          "&:last-child td": { borderBottom: 0 },
-                        }}
-                      >
+                      // <TableRow
+                      //   key={day.date}
+                      //   sx={{
+                      //     transition: "0.2s",
+                      //     "&:hover": { backgroundColor: "rgba(43, 144, 155, 0.05)" },
+                      //     "&:last-child td": { borderBottom: 0 },
+                      //   }}
+                      // >
+  //                     <TableRow
+  // key={day.date}
+  // hover
+  // onClick={() => handleShowPaymentDetails(day.date)}
+  // sx={{
+  //   cursor: "pointer",
+  //   transition: "0.2s",
+  //   "&:hover": {
+  //     backgroundColor: "rgba(43,144,155,0.08)",
+  //   },
+  // }}
+// >
+<TableRow
+key={day.date}
+  hover
+  sx={{ cursor: "pointer" }}
+  onClick={() =>
+    handleShowPaymentDetails(
+      selectedDoctorId,
+      day.date
+    )
+  }
+  >
                         <TableCell>{new Date(day.date).toLocaleDateString()}</TableCell>
                         <TableCell align="right">{day.patientCount}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 600 }}>
@@ -388,6 +685,139 @@ const Payment = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+  open={paymentOpen}
+  onClose={() => setPaymentOpen(false)}
+  fullWidth
+  maxWidth="lg"
+>
+  <DialogTitle>
+    Appointment Details - {selectedDate}
+  </DialogTitle>
+
+  <DialogContent>
+
+    <TableContainer component={Paper}>
+      <Table>
+
+        <TableHead>
+          <TableRow>
+            <TableCell>Appointment No</TableCell>
+            <TableCell>Patient</TableCell>
+            <TableCell>Hospital</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell>Phone</TableCell>
+            {/* <TableCell>NIC</TableCell> */}
+            <TableCell>Amount</TableCell>
+          </TableRow>
+        </TableHead>
+
+
+        {/* <TableBody>
+
+        {paymentDetails.map((row)=>(
+          // <TableRow key={row.id}>
+          <TableRow key={row.appointment_number}>
+
+            <TableCell>
+              {row.appointment_number}
+            </TableCell>
+
+            <TableCell>
+              {row.patient_name}
+            </TableCell>
+
+            <TableCell>
+              {row.hospital}
+            </TableCell>
+
+            <TableCell>
+              {row.email}
+            </TableCell>
+
+            <TableCell>
+              {row.phone}
+            </TableCell>
+
+            <TableCell>
+              {row.nic}
+            </TableCell>
+
+            <TableCell>
+              LKR {row.amount}
+            </TableCell>
+
+          </TableRow>
+        ))}
+
+        </TableBody> */}
+
+        <TableBody>
+  {paymentDetails.length > 0 ? (
+    paymentDetails.map((row) => (
+      <TableRow key={row.appointment_number}>
+        <TableCell>{row.appointment_number}</TableCell>
+        <TableCell>{row.patient_name}</TableCell>
+        <TableCell>{row.hospital}</TableCell>
+        <TableCell>{row.email}</TableCell>
+        <TableCell>{row.phone}</TableCell>
+        {/* <TableCell>{row.nic || "-"}</TableCell> */}
+        <TableCell>LKR {row.amount}</TableCell>
+      </TableRow>
+    ))
+  ) : (
+    <TableRow>
+      <TableCell colSpan={7} align="center">
+        No payment details found
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
+
+      </Table>
+    </TableContainer>
+
+
+    <Typography
+      sx={{
+        mt:2,
+        fontWeight:"bold",
+        textAlign:"right"
+      }}
+    >
+      Total: LKR{" "}
+      {
+        paymentDetails.reduce(
+          (sum,row)=>sum+Number(row.amount),
+          0
+        )
+      }
+    </Typography>
+
+
+  </DialogContent>
+
+
+  <DialogActions>
+
+    <Button
+  variant="contained"
+  onClick={downloadPDF}
+>
+  Download PDF
+</Button>
+
+
+    <Button
+      color="error"
+      onClick={()=>setPaymentOpen(false)}
+    >
+      Close
+    </Button>
+
+  </DialogActions>
+
+</Dialog>
     </Box>
   );
 };

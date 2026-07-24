@@ -25,6 +25,9 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import Swal from "sweetalert2";
 import PageHeader from "../../components/PageHeader";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 const UpdateAppointments = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
@@ -40,6 +43,7 @@ const UpdateAppointments = () => {
     session_time: "",
     max_appointments: 5,
   });
+  
 
   const fetchDoctor = async () => {
     const res = await fetch(`http://localhost:3000/api/doctors/${doctorId}`);
@@ -114,6 +118,106 @@ const groupedByDate = sortedAppointments.reduce((acc, appt) => {
     fetchAppointments();
   };
 
+
+  const generateReport = () => {
+  const doc = new jsPDF();
+
+  const totalSessions = appointments.length;
+  const totalSlots = appointments.reduce(
+    (sum, s) => sum + Number(s.max_appointments),
+    0
+  );
+
+  const totalBooked = appointments.reduce(
+    (sum, s) => sum + Number(s.assigned_count || 0),
+    0
+  );
+
+  const totalAvailable = totalSlots - totalBooked;
+
+  doc.setFontSize(18);
+  doc.text("Doctor Session Report", 14, 15);
+
+  doc.setFontSize(12);
+  doc.text(`Doctor : Dr. ${doctor?.name || ""}`, 14, 28);
+  doc.text(`Generated : ${new Date().toLocaleDateString()}`, 14, 36);
+
+  doc.text(`Total Sessions : ${totalSessions}`, 14, 48);
+  doc.text(`Total Slots : ${totalSlots}`, 14, 56);
+  doc.text(`Booked : ${totalBooked}`, 14, 64);
+  doc.text(`Available : ${totalAvailable}`, 14, 72);
+
+  autoTable(doc, {
+    startY: 82,
+    head: [[
+      "Date",
+      "Hospital",
+      "Time",
+      "Max",
+      "Booked",
+      "Available"
+    ]],
+    body: appointments.map((a) => [
+      a.session_date.split("T")[0],
+      a.hospital,
+      a.session_time.slice(0,5),
+      a.max_appointments,
+      a.assigned_count,
+      a.max_appointments - a.assigned_count,
+    ]),
+  });
+
+  doc.save(`Doctor_Sessions_${doctor?.name}.pdf`);
+};
+
+
+const generatePatientReport = async (session) => {
+  try {
+    const res = await fetch(
+      `http://localhost:3000/api/appointments/session-patients/${session.id}`
+    );
+
+    const patients = await res.json();
+
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Session Patient Report", 14, 15);
+
+    doc.setFontSize(12);
+    doc.text(`Doctor : Dr. ${doctor.name}`, 14, 28);
+    doc.text(`Hospital : ${session.hospital}`, 14, 36);
+    doc.text(`Date : ${session.session_date.split("T")[0]}`, 14, 44);
+    doc.text(`Time : ${session.session_time.slice(0,5)}`, 14, 52);
+
+    autoTable(doc, {
+      startY: 60,
+      head: [[
+        "No",
+        "Patient",
+        "Phone",
+        "Email",
+        "NIC",
+        "Estimated Time"
+      ]],
+      body: patients.map((p) => [
+        p.appointment_number,
+        p.patient_name,
+        p.phone,
+        p.email,
+        p.nic,
+        p.estimated_time
+      ])
+    });
+
+    doc.save(
+      `Session_${session.session_date.split("T")[0]}.pdf`
+    );
+
+  } catch (err) {
+    console.error(err);
+  }
+};
   if (loading) return <CircularProgress />;
 
   return (
@@ -123,6 +227,15 @@ const groupedByDate = sortedAppointments.reduce((acc, appt) => {
         subtitle="Update or remove upcoming appointment sessions"
         onBack={() => navigate(-1)}
       />
+
+ <Button
+    variant="contained"
+    color="success"
+    onClick={generateReport}
+    sx={{background: "linear-gradient(135deg, #2B909B, #6dd5ed)"}}
+  >
+    Generate Report
+  </Button>
 
       {/* TABLES PER DAY */}
       {Object.keys(groupedByDate).map((date) => (
@@ -402,6 +515,22 @@ const percentage =
                 >
                   Delete
                 </Button>
+
+                <Button
+    variant="contained"
+    color="success"
+    onClick={() => generatePatientReport(a)}
+     sx={{
+    borderRadius: "10px",
+    textTransform: "none",
+    background: "linear-gradient(135deg, #2B909B, #6dd5ed)",
+    "&:hover": {
+     background: "linear-gradient(135deg, #2B909B, #6dd5ed)",
+    },
+  }}
+>
+    Patient Report
+</Button>
               </Box>
             </TableCell>
           </TableRow>

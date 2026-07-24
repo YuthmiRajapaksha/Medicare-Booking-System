@@ -188,7 +188,7 @@ const Dashboard = () => {
       {/* DOCTOR TABLE */}
       <Paper sx={{ mt: 3, p: 2.5 }}>
         <Typography sx={{ fontWeight: 700, mb: 2 }}>
-          Doctor Appointment Summary
+          Doctor Summary
         </Typography>
 
         {loading ? (

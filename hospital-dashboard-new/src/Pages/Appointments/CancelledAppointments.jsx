@@ -19,6 +19,9 @@ import {
 } from "@mui/material";
 import PageHeader from "../../components/PageHeader";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 const CancelledAppointments = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
@@ -28,6 +31,76 @@ const CancelledAppointments = () => {
   const [filterDate, setFilterDate] = useState("");
   const [filterTime, setFilterTime] = useState("");
   const [filterHospital, setFilterHospital] = useState("");
+
+//   const [reportAppointments, setReportAppointments] = useState([]);
+// const [reportDate, setReportDate] = useState("");
+
+// const handleGenerateReport = () => {
+//   if (!filterDate) {
+//     alert("Please select a date.");
+//     return;
+//   }
+
+//   const report = cancelledAppointments.filter(
+//     (appt) => appt.session_date === filterDate
+//   );
+
+//   if (report.length === 0) {
+//     alert("No cancelled appointments found for this date.");
+//     return;
+//   }
+
+//   setReportAppointments(report);
+//   setReportDate(filterDate);
+// };
+
+
+const handleGenerateReport = () => {
+  if (!filterDate) {
+    alert("Please select a date.");
+    return;
+  }
+
+  const report = cancelledAppointments.filter(
+    (appt) => appt.session_date.slice(0, 10) === filterDate
+  );
+
+  if (report.length === 0) {
+    alert("No cancelled appointments found.");
+    return;
+  }
+
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.text("Cancelled Appointment Report", 14, 20);
+
+  doc.setFontSize(12);
+  doc.text(`Doctor: Dr. ${doctor?.name}`, 14, 30);
+  doc.text(`Date: ${filterDate}`, 14, 38);
+
+  autoTable(doc, {
+    startY: 48,
+    head: [[
+      "Patient",
+      "NIC",
+      "Hospital",
+      "Time",
+      "Email",
+      "Phone"
+    ]],
+    body: report.map((appt) => [
+      appt.patient_name,
+      appt.nic,
+      appt.hospital,
+      appt.session_time.slice(0, 5),
+      appt.email,
+      appt.phone,
+    ]),
+  });
+
+  doc.save(`Cancelled_Report_${filterDate}.pdf`);
+};
 
   useEffect(() => {
     const fetchDoctor = async () => {
@@ -91,13 +164,25 @@ const CancelledAppointments = () => {
 
       {/* Filters */}
       <Stack direction="row" spacing={2} mb={4} flexWrap="wrap">
-        <TextField
+        {/* <TextField
           label="Filter by Date"
           type="date"
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
-        />
+        /> */}
+        <TextField
+  label="Filter by Date"
+  type="date"
+  value={filterDate}
+  onChange={(e) => {
+    console.log("Selected date:", e.target.value);
+    setFilterDate(e.target.value);
+  }}
+  InputLabelProps={{ shrink: true }}
+/>
+
+
         <TextField
           label="Filter by Time"
           type="time"
@@ -124,7 +209,61 @@ const CancelledAppointments = () => {
         >
           Reset Filters
         </Button>
+
+        <Button
+  variant="contained"
+  onClick={handleGenerateReport}
+  sx={{ height: "56px" }}
+>
+  Generate Report
+</Button>
       </Stack>
+
+
+       {/* 👇 ADD THE REPORT HERE */}
+    {/* {reportAppointments.length > 0 && (
+      <Box mt={4} mb={4}>
+        <Typography variant="h6" fontWeight={600}>
+          Cancelled Appointment Report
+        </Typography>
+
+        <Typography mb={2}>
+          Report Date: {new Date(reportDate).toDateString()}
+        </Typography>
+
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Patient</TableCell>
+                <TableCell>NIC</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Phone</TableCell>
+                <TableCell>Hospital</TableCell>
+                <TableCell>Time</TableCell>
+                <TableCell>Status</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {reportAppointments.map((appt) => (
+                <TableRow key={appt.id}>
+                  <TableCell>{appt.patient_name}</TableCell>
+                  <TableCell>{appt.nic}</TableCell>
+                  <TableCell>{appt.email}</TableCell>
+                  <TableCell>{appt.phone}</TableCell>
+                  <TableCell>{appt.hospital}</TableCell>
+                  <TableCell>{appt.session_time?.slice(0, 5)}</TableCell>
+                  <TableCell>Cancelled</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    )} */}
+
+  
 
       {Object.keys(groupedByDate).length === 0 ? (
         <Typography>No cancelled appointments found.</Typography>

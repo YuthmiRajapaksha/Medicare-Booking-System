@@ -21,6 +21,10 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PageHeader from "../../components/PageHeader";
 
+// Generate Reports
+  import jsPDF from "jspdf";
+  import autoTable from "jspdf-autotable";
+
 const PastAppointments = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
@@ -32,9 +36,83 @@ const PastAppointments = () => {
   const [filterTime, setFilterTime] = useState("");
   const [filterHospital, setFilterHospital] = useState("");
 
+  const [doctor, setDoctor] = useState(null);
+
+const handleGenerateReport = () => {
+  if (!filterDate) {
+    alert("Please select a date.");
+    return;
+  }
+
+  const report = filteredAppointments.filter(
+    (appt) => appt.session_date === filterDate
+  );
+
+  if (report.length === 0) {
+    alert("No appointments found for this date.");
+    return;
+  }
+
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.text("Past Appointments Report", 14, 20);
+
+  doc.setFontSize(11);
+  doc.text(`Doctor: Dr. ${doctor?.name || "Unknown"}`, 14, 30);
+  doc.text(`Report Date: ${filterDate}`, 14, 38);
+  doc.text(`Total Appointments: ${report.length}`, 14, 46);
+
+  autoTable(doc, {
+    startY: 55,
+    head: [[
+      "No",
+      "Appointment No",
+      "Patient",
+      "Hospital",
+      "Time",
+      "Email",
+      "Phone",
+      "NIC",
+      "Status"
+    ]],
+    body: report.map((appt, index) => [
+      index + 1,
+      appt.appointment_number,
+      appt.patient_name,
+      appt.hospital,
+      appt.session_time.slice(0, 5),
+      appt.email,
+      appt.phone,
+      appt.nic,
+      "Completed",
+    ]),
+  });
+
+  doc.save(`Past_Appointments_${filterDate}.pdf`);
+};
+
+  // useEffect(() => {
+  //   fetchAppointments();
+  // }, [doctorId]);
   useEffect(() => {
-    fetchAppointments();
-  }, [doctorId]);
+  fetchDoctor();
+  fetchAppointments();
+}, [doctorId]);
+
+  const fetchDoctor = async () => {
+  try {
+    const res = await fetch(
+      `http://localhost:3000/api/doctors/${doctorId}`
+    );
+
+    const data = await res.json();
+
+    setDoctor(data.doctor || data);
+  } catch (err) {
+    console.error("Error fetching doctor:", err);
+  }
+};
 
   const fetchAppointments = async () => {
     try {
@@ -49,6 +127,9 @@ const PastAppointments = () => {
       }
 
       const data = await res.json();
+ 
+      //Report  
+      const now = new Date();
 
       console.log("API Response:", data);
 
@@ -174,6 +255,14 @@ const PastAppointments = () => {
         >
           Reset
         </Button>
+
+        <Button
+  variant="contained"
+  color="primary"
+  onClick={handleGenerateReport}
+>
+  Generate PDF
+</Button>
       </Stack>
 
       {loading ? (
